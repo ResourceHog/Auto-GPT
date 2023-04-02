@@ -21,9 +21,13 @@ class Config(metaclass=Singleton):
     def __init__(self):
         self.continuous_mode = False
         self.speak_mode = False
+        self.active_mode = False
 
     def set_continuous_mode(self, value: bool):
         self.continuous_mode = value
 
     def set_speak_mode(self, value: bool):
         self.speak_mode = value
+
+    def set_active_mode(self, value: bool):
+        self.active_mode = value

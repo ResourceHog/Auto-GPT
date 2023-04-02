@@ -16,6 +16,7 @@ from util import print_to_console
 class Argument(Enum):
     CONTINUOUS_MODE = "continuous-mode"
     SPEAK_MODE = "speak-mode"
+    ACTIVE_MODE = "active-mode"
 
 
 def print_assistant_thoughts(assistant_reply):
@@ -99,7 +100,6 @@ def construct_prompt():
         Fore.LIGHTBLUE_EX,
         "I am at your service.",
         speak_text=True)
-
     # Get AI Role from User
     print_to_console(
         "Describe your AI's role: ",
@@ -143,6 +143,7 @@ def parse_arguments():
     global cfg
     cfg.set_continuous_mode(False)
     cfg.set_speak_mode(False)
+    cfg.set_active_mode(False)
     for arg in sys.argv[1:]:
         if arg == Argument.CONTINUOUS_MODE.value:
             print_to_console("Continuous Mode: ", Fore.RED, "ENABLED")
@@ -154,6 +155,9 @@ def parse_arguments():
         elif arg == Argument.SPEAK_MODE.value:
             print_to_console("Speak Mode: ", Fore.GREEN, "ENABLED")
             cfg.set_speak_mode(True)
+        elif arg == Argument.ACTIVE_MODE.value:
+            print_to_console("Active Mode: ", Fore.GREEN, "ENABLED")
+            cfg.set_active_mode(True)
 
 
 cfg = Config()
@@ -187,7 +191,13 @@ while True:
     except Exception as e:
         print_to_console("Error: \n", Fore.RED, str(e))
 
-    if not cfg.continuous_mode:
+    if cfg.continuous_mode:
+        # Print command
+        print_to_console(
+            "NEXT ACTION: ",
+            Fore.CYAN,
+            f"COMMAND = {Fore.CYAN}{command_name}{Style.RESET_ALL}  ARGUMENTS = {Fore.CYAN}{arguments}{Style.RESET_ALL}")
+    elif cfg.speak_mode:
         ### GET USER AUTHORIZATION TO EXECUTE COMMAND ###
         # Get key press: Prompt the user to press enter to continue or escape
         # to exit
@@ -218,12 +228,43 @@ while True:
             "-=-=-=-=-=-=-= COMMAND AUTHORISED BY USER -=-=-=-=-=-=-=",
             Fore.MAGENTA,
             "")
-    else:
-        # Print command
+    elif cfg.active_mode:
+        ### GET USER AUTHORIZATION TO EXECUTE COMMAND ###
+        # Get key press: Prompt the user to press enter to continue or type no to give a reason for rejecting the command.
+        # type 'exit' to exit the program
+        user_input = ""
         print_to_console(
             "NEXT ACTION: ",
             Fore.CYAN,
             f"COMMAND = {Fore.CYAN}{command_name}{Style.RESET_ALL}  ARGUMENTS = {Fore.CYAN}{arguments}{Style.RESET_ALL}")
+        print(
+            "Press enter to authorise command or type 'n' to give a reason for rejecting the command...",
+            flush=True)
+        while True:
+            console_input = input(
+                Fore.MAGENTA + "Input[y/n]:" + Style.RESET_ALL)
+            if console_input.lower() == "n":
+                user_input = "REJECT COMMAND"
+                break
+            elif console_input.lower() == "exit":
+                user_input = "EXIT"
+                break
+            elif console_input == "y":
+                user_input = "NEXT COMMAND"
+                break
+        if user_input == "REJECT COMMAND":
+            print("Enter reason for rejecting command...", flush=True)
+            reason = input(Fore.MAGENTA + "reason:" + Style.RESET_ALL)
+            print_to_console(
+                "REASON FOR REJECTION: ",
+                Fore.MAGENTA,
+                user_input)
+            full_message_history.append(
+                chat.create_chat_message("system", f"Request Denied by user with reason: {reason}"))
+            continue
+        elif user_input == "EXIT":
+            print("Exiting...", flush=True)
+            break
 
     # Exectute command
     if command_name.lower() != "error":
