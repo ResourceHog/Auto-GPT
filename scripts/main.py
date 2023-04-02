@@ -1,5 +1,4 @@
 import json
-import random
 import commands as cmd
 import memory as mem
 import data
@@ -11,6 +10,7 @@ import speak
 from enum import Enum, auto
 import sys
 from config import Config
+from util import print_to_console
 
 
 class Argument(Enum):
@@ -18,37 +18,12 @@ class Argument(Enum):
     SPEAK_MODE = "speak-mode"
 
 
-def print_to_console(
-        title,
-        title_color,
-        content,
-        speak_text=False,
-        min_typing_speed=0.05,
-        max_typing_speed=0.01):
-    global cfg
-    if speak_text and cfg.speak_mode:
-        speak.say_text(f"{title}. {content}")
-    print(title_color + title + " " + Style.RESET_ALL, end="")
-    if content:
-        words = content.split()
-        for i, word in enumerate(words):
-            print(word, end="", flush=True)
-            if i < len(words) - 1:
-                print(" ", end="", flush=True)
-            typing_speed = random.uniform(min_typing_speed, max_typing_speed)
-            time.sleep(typing_speed)
-            # type faster after each word
-            min_typing_speed = min_typing_speed * 0.95
-            max_typing_speed = max_typing_speed * 0.95
-    print()
-
-
 def print_assistant_thoughts(assistant_reply):
     global ai_name
     global cfg
     try:
         # Parse and print Assistant response
-        assistant_reply_json = json.loads(assistant_reply)
+        assistant_reply_json = json.loads(cfg)
 
         assistant_thoughts = assistant_reply_json.get("thoughts")
         if assistant_thoughts:
