@@ -1,8 +1,10 @@
+from colorama import Fore, Style
 import browse
 import json
 import memory as mem
 import datetime
 import agent_manager as agents
+from util import print_to_console
 import speak
 from config import Config
 import ai_functions as ai
@@ -85,6 +87,8 @@ def execute_command(command_name, arguments):
             return execute_python_file(arguments["file"])
         elif command_name == "task_complete":
             shutdown()
+        elif command_name == "message_user":
+            return message_user(arguments["message"])
         else:
             return f"Unknown command {command_name}"
     # All errors, return "Error: + error message"
@@ -225,3 +229,14 @@ def check_notifications(website):
     _text = "Checking notifications from " + website
     print(_text)
     return "Command not implemented yet."
+
+
+def message_user(message):
+    global cfg
+    global ai_name
+    print_to_console(ai_name, message)
+    while True:
+        user_response = input(Fore.MAGENTA + "Response:" + Style.RESET_ALL)
+        if user_response != "":
+            break
+    return user_response
